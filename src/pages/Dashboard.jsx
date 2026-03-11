@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  Library, Upload, Rss, User, BookOpen, FileText, 
+import {
+  Library, Upload, Rss, User, BookOpen, FileText,
   MessageSquare, ArrowRight, Clock, Sparkles
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -90,7 +90,7 @@ export default function Dashboard() {
                 <Sparkles size={13} className="fill-current" /> {greeting}!
               </p>
               <h1 className="text-2xl md:text-3xl font-bold text-white mt-0.5">
-                Welcome back, {displayName} 👋
+                Welcome, {displayName} 👋
               </h1>
               <p className="text-primary-200 text-sm mt-1">Ready to explore or share some knowledge today?</p>
             </div>
