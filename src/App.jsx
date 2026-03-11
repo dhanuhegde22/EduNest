@@ -11,6 +11,7 @@ import NotesLibrary from './pages/NotesLibrary'
 import UploadNotes from './pages/UploadNotes'
 import EduFeed from './pages/EduFeed'
 import ProfilePage from './pages/ProfilePage'
+import ResetPassword from './pages/ResetPassword'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
