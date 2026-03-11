@@ -9,8 +9,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Intercept Supabase password recovery links
+    // If the hash contains type=recovery and we aren't already on the reset page, redirect immediately.
+    // We preserve the hash so Supabase can still read the access_token on the reset page.
+    if (window.location.hash.includes('type=recovery') && window.location.pathname !== '/reset-password') {
+      window.location.replace('/reset-password' + window.location.hash)
+      return
+    }
+
     let mounted = true
-    
+
     const getSession = async () => {
       try {
         const { data } = await supabase.auth.getSession()
