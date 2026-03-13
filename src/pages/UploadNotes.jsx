@@ -4,7 +4,6 @@ import { Upload, FileText, X, CheckCircle, BookOpen, Tag, AlertCircle } from 'lu
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
-import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { subjects } from './Dashboard'
 
@@ -123,13 +122,12 @@ export default function UploadNotes() {
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
                 onClick={() => document.getElementById('pdf-input').click()}
-                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${
-                  dragOver
+                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${dragOver
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                     : file
-                    ? 'border-accent-400 bg-accent-50 dark:bg-accent-900/20'
-                    : 'border-slate-300 dark:border-dark-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/10'
-                }`}
+                      ? 'border-accent-400 bg-accent-50 dark:bg-accent-900/20'
+                      : 'border-slate-300 dark:border-dark-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/10'
+                  }`}
               >
                 <input
                   id="pdf-input"
@@ -231,7 +229,7 @@ export default function UploadNotes() {
           </form>
         </div>
       </main>
-      <Footer />
+
     </div>
   )
 }

@@ -4,7 +4,6 @@ import { Search, BookOpen, Download, FileText, Filter, Grid, List, X, Trash2, Ey
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
-import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { subjects } from './Dashboard'
 
@@ -54,7 +53,7 @@ export default function NotesLibrary() {
 
   const handleDeleteNote = async (note) => {
     if (!window.confirm('Are you sure you want to delete this note?')) return
-    
+
     // First remove the file from storage if we have the file_name
     if (note.file_name) {
       const { error: storageError } = await supabase.storage.from('notes').remove([note.file_name])
@@ -263,7 +262,6 @@ export default function NotesLibrary() {
           </div>
         )}
       </main>
-      <div className="mt-8"><Footer /></div>
     </div>
   )
 }

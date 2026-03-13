@@ -3,7 +3,6 @@ import { Heart, MessageSquare, Send, Rss, ChevronDown, ChevronUp, AlertCircle, T
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
-import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 function PostCard({ post, currentUserId, onLike, onComment, onDeletePost }) {
@@ -97,11 +96,10 @@ function PostCard({ post, currentUserId, onLike, onComment, onDeletePost }) {
       <div className="flex items-center gap-4 pt-3 border-t border-slate-100 dark:border-dark-600">
         <button
           onClick={() => onLike(post.id, isLiked)}
-          className={`flex items-center gap-1.5 text-sm font-medium transition-all duration-200 px-3 py-1.5 rounded-lg ${
-            isLiked
+          className={`flex items-center gap-1.5 text-sm font-medium transition-all duration-200 px-3 py-1.5 rounded-lg ${isLiked
               ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
               : 'text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
-          }`}
+            }`}
         >
           <Heart size={16} className={isLiked ? 'fill-current' : ''} />
           {post.like_count || 0}
@@ -329,7 +327,6 @@ export default function EduFeed() {
           </div>
         )}
       </main>
-      <div className="mt-8"><Footer /></div>
     </div>
   )
 }
