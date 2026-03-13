@@ -201,7 +201,13 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-      <div className="mt-8"><Footer /></div>
+      
+      {/* Minimal Footer for Dashboard */}
+      <footer className="py-6 mt-auto">
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+          © {new Date().getFullYear()} EduNest. All rights reserved.
+        </p>
+      </footer>
     </div>
   )
 }

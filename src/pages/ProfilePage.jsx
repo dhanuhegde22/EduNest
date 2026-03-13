@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, FileText, MessageSquare, Mail, Calendar, Edit2, Camera, Check, X } from 'lucide-react'
+import { User, FileText, MessageSquare, Mail, Calendar, Edit2, Camera, Check, X, Trash2, Eye, Download } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
@@ -23,7 +23,7 @@ export default function ProfilePage() {
     const fetchAll = async () => {
       const [{ data: profileData }, { data: notesData }, { data: postsData }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('notes').select('id, title, description, subject_id, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('notes').select('id, title, description, subject_id, file_url, file_name, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('posts').select('id, content, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
       ])
       setProfile(profileData)
@@ -41,6 +41,43 @@ export default function ProfilePage() {
     setProfile(prev => ({ ...prev, bio: bioValue }))
     setSavingBio(false)
     setEditBio(false)
+  }
+
+  const handleDeleteNote = async (noteId, fileName) => {
+    if (!window.confirm('Are you sure you want to delete this note?')) return
+    
+    // First remove the file from storage if we have the file_name
+    if (fileName) {
+      const { error: storageError } = await supabase.storage.from('notes').remove([fileName])
+      if (storageError) console.error('Error deleting file from storage:', storageError)
+    }
+
+    // Then delete the database record
+    const { error } = await supabase.from('notes').delete().eq('id', noteId).eq('user_id', user.id)
+    if (!error) {
+      setNotes(prev => prev.filter(n => n.id !== noteId))
+    } else {
+      console.error('Error deleting note record:', error)
+    }
+  }
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return
+    const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
+    if (!error) {
+      setPosts(prev => prev.filter(p => p.id !== postId))
+    } else {
+      console.error('Error deleting post:', error)
+    }
+  }
+
+  const handleDownload = async (note) => {
+    if (!note.file_url) return
+    const link = document.createElement('a')
+    link.href = note.file_url
+    link.download = note.file_name || `${note.title}.pdf`
+    link.target = '_blank'
+    link.click()
   }
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'
@@ -183,6 +220,33 @@ export default function ProfilePage() {
                           <span className="text-xs text-slate-400">{new Date(note.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {note.file_url && (
+                          <a
+                            href={note.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            title="View note"
+                          >
+                            <Eye size={16} />
+                          </a>
+                        )}
+                        <button
+                          onClick={() => handleDownload(note)}
+                          className="p-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                          title="Download note"
+                        >
+                          <Download size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteNote(note.id, note.file_name)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Delete note"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   )
                 })}
@@ -203,8 +267,17 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 {posts.map(post => (
                   <div key={post.id} className="glass-card p-5">
-                    <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                    <p className="text-xs text-slate-400 mt-3">{new Date(post.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ml-4 shrink-0"
+                        title="Delete post"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">{new Date(post.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</p>
                   </div>
                 ))}
               </div>

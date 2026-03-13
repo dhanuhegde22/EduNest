@@ -19,17 +19,6 @@ export default function Footer() {
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-xs">
               A distraction-free academic platform where students collaborate through knowledge, not noise.
             </p>
-            <div className="flex items-center gap-3 mt-5">
-              <a href="#" className="p-2 rounded-lg text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200">
-                <Github size={18} />
-              </a>
-              <a href="#" className="p-2 rounded-lg text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200">
-                <Twitter size={18} />
-              </a>
-              <a href="#" className="p-2 rounded-lg text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200">
-                <Mail size={18} />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -54,13 +43,35 @@ export default function Footer() {
           {/* Subjects */}
           <div>
             <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-4">Subjects</h3>
-            <ul className="space-y-2.5">
-              {['Data Structures', 'Operating Systems', 'DBMS', 'Computer Networks', 'Web Development', 'AI & ML'].map(s => (
-                <li key={s}>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">{s}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-1">Computer Science:</h4>
+                <ul className="space-y-1">
+                  {['Data Structures', 'Operating Systems', 'Web Development'].map(s => (
+                    <li key={s} className="text-sm text-slate-500 dark:text-slate-400">{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-1">Commerce:</h4>
+                <ul className="space-y-1">
+                  {['Financial Accounting', 'Business Management', 'Business Economics'].map(s => (
+                    <li key={s} className="text-sm text-slate-500 dark:text-slate-400">{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-1">Other Courses:</h4>
+                <ul className="space-y-1">
+                  {['Mathematics', 'Statistics', 'English Communication'].map(s => (
+                    <li key={s} className="text-sm text-slate-500 dark:text-slate-400">{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="pt-2">
+                <span className="text-sm text-slate-500 dark:text-slate-400 italic">And many more subjects...</span>
+              </div>
+            </div>
           </div>
         </div>
 

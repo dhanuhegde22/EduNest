@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, BookOpen, Download, FileText, Filter, Grid, List, X } from 'lucide-react'
+import { Search, BookOpen, Download, FileText, Filter, Grid, List, X, Trash2, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { subjects } from './Dashboard'
 
 export default function NotesLibrary() {
+  const { user } = useAuth()
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,7 +20,7 @@ export default function NotesLibrary() {
     setLoading(true)
     let query = supabase
       .from('notes')
-      .select('id, title, description, subject_id, tags, file_url, file_name, created_at, profiles(full_name)')
+      .select('id, title, description, subject_id, tags, file_url, file_name, created_at, user_id, profiles(full_name)')
       .order('created_at', { ascending: false })
 
     if (selectedSubject) {
@@ -48,6 +50,24 @@ export default function NotesLibrary() {
     link.download = note.file_name || `${note.title}.pdf`
     link.target = '_blank'
     link.click()
+  }
+
+  const handleDeleteNote = async (note) => {
+    if (!window.confirm('Are you sure you want to delete this note?')) return
+    
+    // First remove the file from storage if we have the file_name
+    if (note.file_name) {
+      const { error: storageError } = await supabase.storage.from('notes').remove([note.file_name])
+      if (storageError) console.error('Error deleting file from storage:', storageError)
+    }
+
+    // Then delete the database record
+    const { error } = await supabase.from('notes').delete().eq('id', note.id).eq('user_id', user.id)
+    if (!error) {
+      setNotes(prev => prev.filter(n => n.id !== note.id))
+    } else {
+      console.error('Error deleting note record:', error)
+    }
   }
 
   return (
@@ -159,12 +179,33 @@ export default function NotesLibrary() {
                     <span className="text-xs text-slate-400">
                       by {note.profiles?.full_name || 'Anonymous'}
                     </span>
-                    <button
-                      onClick={() => handleDownload(note)}
-                      className="flex items-center gap-1.5 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium group-hover:underline"
-                    >
-                      <Download size={14} /> Download
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {note.user_id === user?.id && (
+                        <button
+                          onClick={() => handleDeleteNote(note)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Delete note"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                      {note.file_url && (
+                        <a
+                          href={note.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-medium transition-colors"
+                        >
+                          <Eye size={14} /> View
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleDownload(note)}
+                        className="flex items-center gap-1.5 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium group-hover:underline ml-1"
+                      >
+                        <Download size={14} /> Download
+                      </button>
+                    </div>
                   </div>
                   {note.tags && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -188,12 +229,34 @@ export default function NotesLibrary() {
                       {note.description || 'No description'} · by {note.profiles?.full_name || 'Anonymous'}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleDownload(note)}
-                    className="btn-secondary text-sm shrink-0"
-                  >
-                    <Download size={15} /> Download
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {note.user_id === user?.id && (
+                      <button
+                        onClick={() => handleDeleteNote(note)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Delete note"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                    {note.file_url && (
+                      <a
+                        href={note.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                        title="View note"
+                      >
+                        <Eye size={16} />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleDownload(note)}
+                      className="btn-secondary text-sm ml-1"
+                    >
+                      <Download size={15} /> Download
+                    </button>
+                  </div>
                 </div>
               )
             })}

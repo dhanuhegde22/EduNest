@@ -170,15 +170,20 @@ export default function LandingPage() {
             <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto">
               EduNest was built with a passion for education and clean, purposeful design.
             </p>
-            <div className="inline-block glass-card px-10 py-8 text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
-                <GraduationCap size={32} className="text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">EduNest Team</h3>
-              <p className="text-primary-600 dark:text-primary-400 font-medium text-sm mb-3">Full-Stack Developer</p>
-              <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs">
-                Built with React, Vite, Tailwind CSS, and Supabase — all for the love of learning.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {[
+                { name: 'Dhanush Hegde' },
+                { name: 'Darshan Marathi' },
+                { name: 'Varun Nayak' },
+              ].map(dev => (
+                <div key={dev.name} className="glass-card px-8 py-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
+                    <GraduationCap size={24} className="text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{dev.name}</h3>
+                  <p className="text-primary-600 dark:text-primary-400 font-medium text-sm">EduNest Development Team</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Heart, MessageSquare, Send, Rss, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react'
+import { Heart, MessageSquare, Send, Rss, ChevronDown, ChevronUp, AlertCircle, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
-function PostCard({ post, currentUserId, onLike, onComment }) {
+function PostCard({ post, currentUserId, onLike, onComment, onDeletePost }) {
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
@@ -18,12 +18,22 @@ function PostCard({ post, currentUserId, onLike, onComment }) {
     setLoadingComments(true)
     const { data } = await supabase
       .from('comments')
-      .select('id, content, created_at, profiles(full_name)')
+      .select('id, content, created_at, user_id, profiles(full_name)')
       .eq('post_id', post.id)
       .order('created_at', { ascending: true })
     setComments(data || [])
     setLoadingComments(false)
     setShowComments(true)
+  }
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return
+    const { error } = await supabase.from('comments').delete().eq('id', commentId).eq('user_id', currentUserId)
+    if (!error) {
+      setComments(prev => prev.filter(c => c.id !== commentId))
+    } else {
+      console.error('Error deleting comment:', error)
+    }
   }
 
   const handleCommentToggle = () => {
@@ -69,6 +79,15 @@ function PostCard({ post, currentUserId, onLike, onComment }) {
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{post.profiles?.full_name || 'Anonymous'}</p>
           <p className="text-xs text-slate-400">{timeAgo(post.created_at)}</p>
         </div>
+        {post.user_id === currentUserId && (
+          <button
+            onClick={() => onDeletePost(post.id)}
+            className="ml-auto p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            title="Delete post"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -115,9 +134,20 @@ function PostCard({ post, currentUserId, onLike, onComment }) {
                       </span>
                     </div>
                     <div className="bg-slate-50 dark:bg-dark-700 rounded-xl px-3 py-2 flex-1">
-                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
-                        {c.profiles?.full_name || 'Anonymous'}
-                      </p>
+                      <div className="flex justify-between items-start mb-0.5">
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          {c.profiles?.full_name || 'Anonymous'}
+                        </p>
+                        {c.user_id === currentUserId && (
+                          <button
+                            onClick={() => handleDeleteComment(c.id)}
+                            className="text-slate-400 hover:text-red-500 transition-colors ml-2"
+                            title="Delete comment"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
                       <p className="text-sm text-slate-600 dark:text-slate-400">{c.content}</p>
                     </div>
                   </div>
@@ -158,12 +188,11 @@ export default function EduFeed() {
 
   const fetchPosts = async () => {
     setLoading(true)
-    const { data: postsData, error } = await supabase
+    const { data: postsData } = await supabase
       .from('posts')
-      .select('id, content, created_at, profiles(full_name)')
+      .select('id, content, created_at, user_id, profiles(full_name)')
       .order('created_at', { ascending: false })
 
-    if (error) console.error('Error fetching posts:', error)
     if (!postsData) { setLoading(false); return }
 
     // Fetch likes and comments count for each post
@@ -218,6 +247,16 @@ export default function EduFeed() {
     setPosts(prev => prev.map(p =>
       p.id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p
     ))
+  }
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return
+    const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
+    if (!error) {
+      setPosts(prev => prev.filter(p => p.id !== postId))
+    } else {
+      console.error('Error deleting post:', error)
+    }
   }
 
   return (
@@ -284,6 +323,7 @@ export default function EduFeed() {
                 currentUserId={user.id}
                 onLike={handleLike}
                 onComment={handleComment}
+                onDeletePost={handleDeletePost}
               />
             ))}
           </div>
