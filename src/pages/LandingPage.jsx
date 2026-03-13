@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import { 
-  BookOpen, Upload, Search, Shield, Moon, Rss, 
-  ArrowRight, CheckCircle, GraduationCap, Users, Zap
+import {
+  BookOpen, Upload, Search, Shield, Moon, Rss,
+  ArrowRight, CheckCircle, Users, Zap, GraduationCap
 } from 'lucide-react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/ui/Footer'
@@ -55,14 +55,14 @@ export default function LandingPage() {
   return (
     <div className="page-container flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-dark-900 dark:via-dark-800 dark:to-dark-900 -z-10" />
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary-400/10 rounded-full blur-3xl -z-10" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent-400/10 rounded-full blur-3xl -z-10" />
-          
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <div className="text-center max-w-4xl mx-auto">
               {/* Badge */}
@@ -77,7 +77,7 @@ export default function LandingPage() {
                   Grow Together
                 </span>
               </h1>
-              
+
               <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-10 max-w-2xl mx-auto">
                 EduNest is where serious students share knowledge. Upload notes, explore subject-wise resources, and collaborate academically — zero noise, pure learning.
               </p>
@@ -172,13 +172,17 @@ export default function LandingPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {[
-                { name: 'Dhanush Hegde' },
-                { name: 'Darshan Marathi' },
-                { name: 'Varun Nayak' },
+                { name: 'Dhanush Hegde', photo: '/dhanush.jpeg' },
+                { name: 'Darshan Marathi', photo: '/darshan.jpeg' },
+                { name: 'Varun Nayak', photo: '/varun.jpeg' },
               ].map(dev => (
-                <div key={dev.name} className="glass-card px-8 py-6 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
-                    <GraduationCap size={24} className="text-white" />
+                <div key={dev.name} className="glass-card px-8 py-8 text-center">
+                  <div className="mx-auto mb-5" style={{ width: '160px', height: '160px', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 4px 20px rgba(37,99,235,0.18)' }}>
+                    <img
+                      src={dev.photo}
+                      alt={dev.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                    />
                   </div>
                   <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{dev.name}</h3>
                   <p className="text-primary-600 dark:text-primary-400 font-medium text-sm">EduNest Development Team</p>

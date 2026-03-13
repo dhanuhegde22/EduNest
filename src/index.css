@@ -24,12 +24,22 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 1rem;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.11);
+  transform: translateY(-2px);
 }
 
 .dark .glass-card {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dark .glass-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
 .glass-card-hover {
@@ -39,23 +49,24 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 1rem;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .glass-card-hover:hover {
-  box-shadow: 0 10px 40px rgba(37, 99, 235, 0.15);
-  border-color: rgba(147, 197, 253, 0.5);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.15);
+  border-color: rgba(147, 197, 253, 0.6);
+  transform: translateY(-4px) scale(1.01);
 }
 
 .dark .glass-card-hover {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .dark .glass-card-hover:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 10px 40px rgba(37, 99, 235, 0.2);
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.22);
 }
 
 /* ─── Page Container ─── */
@@ -102,21 +113,23 @@
   cursor: pointer;
   border: none;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .btn-primary:hover {
   background-color: #1d4ed8;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.38);
+  transform: scale(1.03);
 }
 
 .btn-primary:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
@@ -132,15 +145,17 @@
   text-decoration: none;
   cursor: pointer;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .btn-secondary:hover {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transform: scale(1.03);
 }
 
 .btn-secondary:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .dark .btn-secondary {
@@ -150,7 +165,8 @@
 }
 
 .dark .btn-secondary:hover {
-  background-color: #475569;
+  background-color: #3d5068;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
 }
 
 .btn-ghost {
@@ -194,7 +210,7 @@
   padding-left: 35px;
   outline: none;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .input-field::placeholder {
@@ -203,7 +219,12 @@
 
 .input-field:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  background-color: #fafcff;
+}
+
+.input-field:hover:not(:focus) {
+  border-color: #93c5fd;
 }
 
 .dark .input-field {
@@ -218,6 +239,12 @@
 
 .dark .input-field:focus {
   border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  background-color: #3b4f6b;
+}
+
+.dark .input-field:hover:not(:focus) {
+  border-color: #60a5fa;
 }
 
 /* ─── Badge ─── */
@@ -228,6 +255,7 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 /* ─── Line Clamp ─── */
@@ -236,4 +264,30 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+/* ─── Nav Icon Hover ─── */
+.nav-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.nav-icon-btn:hover {
+  transform: scale(1.12);
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .glass-card-hover,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .input-field,
+  .nav-icon-btn {
+    transition: none !important;
+    transform: none !important;
+  }
 }

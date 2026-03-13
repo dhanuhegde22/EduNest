@@ -51,7 +51,7 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200"
+              className="nav-icon-btn p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -101,7 +101,7 @@ export default function Navbar() {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700 transition-all duration-200"
+              className="md:hidden nav-icon-btn p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors duration-200"
             >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
