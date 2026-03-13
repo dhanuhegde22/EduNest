@@ -99,7 +99,7 @@ export default function SignupPage() {
                 <input
                   type="text" name="fullName" required
                   value={form.fullName} onChange={handleChange}
-                  placeholder="John Doe"
+                  placeholder="Enter your full name"
                   className="input-field pl-11"
                 />
               </div>
@@ -113,7 +113,7 @@ export default function SignupPage() {
                 <input
                   type="email" name="email" required
                   value={form.email} onChange={handleChange}
-                  placeholder="you@example.com"
+                  placeholder="Enter your email address"
                   className="input-field pl-11"
                 />
               </div>
