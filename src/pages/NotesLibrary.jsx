@@ -77,22 +77,32 @@ export default function NotesLibrary() {
     link.target = '_blank'
     link.click()
 
-    // Optimistically update UI
-    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, downloads: (n.downloads || 0) + 1 } : n))
+    const newDownloads = parseInt(note.downloads || 0, 10) + 1
+
+    // Optimistically update UI so it doesn't flicker
+    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, downloads: newDownloads } : n))
     
-    // Update DB via RPC to ensure atomicity and bypass RLS restrictions for non-owners
-    await supabase.rpc('increment_download', { note_id: note.id })
+    // Use RPC to bypass RLS. Regular .update() fails if the user didn't upload the note!
+    const { error } = await supabase.rpc('increment_download', { note_id: note.id })
+    if (error) {
+       console.error("RPC increment_download failed. Ensure you ran the SQL script in Supabase!", error)
+    }
   }
 
   const handleView = async (note) => {
     if (!note.file_url) return
     window.open(note.file_url, '_blank', 'noopener,noreferrer')
 
+    const newViews = parseInt(note.views || 0, 10) + 1
+
     // Optimistically update UI
-    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, views: (n.views || 0) + 1 } : n))
+    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, views: newViews } : n))
     
-    // Update DB via RPC for atomic increment and RLS bypass
-    await supabase.rpc('increment_view', { note_id: note.id })
+    // Use RPC to bypass RLS
+    const { error } = await supabase.rpc('increment_view', { note_id: note.id })
+    if (error) {
+       console.error("RPC increment_view failed. Ensure you ran the SQL script in Supabase!", error)
+    }
   }
 
   const handleDeleteNote = (note) => {
