@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
-import { subjects } from './Dashboard'
+import { subjects, categories } from './Dashboard'
 
 export default function UploadNotes() {
   const { user } = useAuth()
@@ -195,8 +195,12 @@ export default function UploadNotes() {
                 className="input-field"
               >
                 <option value="">Select a subject...</option>
-                {subjects.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                {categories.map(category => (
+                  <optgroup key={category} label={category}>
+                    {subjects.filter(s => s.category === category).map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

@@ -18,15 +18,39 @@ const quickLinks = [
 ]
 
 const subjects = [
-  { id: 1, name: 'Data Structures', slug: 'ds', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-  { id: 2, name: 'Operating Systems', slug: 'os', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-  { id: 3, name: 'DBMS', slug: 'dbms', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
-  { id: 4, name: 'Computer Networks', slug: 'cn', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-  { id: 5, name: 'Web Development', slug: 'web', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
-  { id: 6, name: 'Artificial Intelligence', slug: 'ai', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  // Computer Science
+  { id: 1, name: 'Data Structures', slug: 'ds', category: 'Computer Science', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  { id: 2, name: 'Operating Systems', slug: 'os', category: 'Computer Science', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
+  { id: 3, name: 'Database Management Systems', slug: 'dbms', category: 'Computer Science', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300' },
+  { id: 4, name: 'Web Development', slug: 'web', category: 'Computer Science', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
+  { id: 5, name: 'Computer Networks', slug: 'cn', category: 'Computer Science', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  { id: 6, name: 'Artificial Intelligence', slug: 'ai', category: 'Computer Science', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  { id: 17, name: 'Java', slug: 'java', category: 'Computer Science', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  { id: 18, name: 'Python', slug: 'python', category: 'Computer Science', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  
+  // Commerce
+  { id: 7, name: 'Financial Accounting', slug: 'fa', category: 'Commerce', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
+  { id: 8, name: 'Business Economics', slug: 'be', category: 'Commerce', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  { id: 9, name: 'Income Tax', slug: 'it', category: 'Commerce', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
+  { id: 10, name: 'Cost Accounting', slug: 'ca', category: 'Commerce', color: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300' },
+  { id: 11, name: 'Business Law', slug: 'bl', category: 'Commerce', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  { id: 12, name: 'Banking and Insurance', slug: 'bi', category: 'Commerce', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+
+  // Mathematics
+  { id: 13, name: 'Mathematics', slug: 'math', category: 'Mathematics', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { id: 14, name: 'Statistics', slug: 'stats', category: 'Mathematics', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' },
+  { id: 19, name: 'Discrete Mathematics', slug: 'dmath', category: 'Mathematics', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
+  { id: 20, name: 'Linear Algebra', slug: 'la', category: 'Mathematics', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
+  { id: 21, name: 'Calculus', slug: 'calc', category: 'Mathematics', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+
+  // Other
+  { id: 15, name: 'Environmental Studies', slug: 'evs', category: 'Other', color: 'bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-300' },
+  { id: 16, name: 'Other', slug: 'other', category: 'Other', color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300' },
 ]
 
-export { subjects }
+const categories = ['Computer Science', 'Commerce', 'Mathematics', 'Other']
+
+export { subjects, categories }
 
 export default function Dashboard() {
   const { user } = useAuth()

@@ -5,13 +5,14 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
-import { subjects } from './Dashboard'
+import { subjects, categories } from './Dashboard'
 
 export default function NotesLibrary() {
   const { user } = useAuth()
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedSubject, setSelectedSubject] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
 
@@ -24,6 +25,9 @@ export default function NotesLibrary() {
 
     if (selectedSubject) {
       query = query.eq('subject_id', selectedSubject)
+    } else if (selectedCategory) {
+      const categorySubjectIds = subjects.filter(s => s.category === selectedCategory).map(s => s.id)
+      query = query.in('subject_id', categorySubjectIds)
     }
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
@@ -33,7 +37,7 @@ export default function NotesLibrary() {
     if (error) console.error('Error fetching notes:', error)
     setNotes(data || [])
     setLoading(false)
-  }, [selectedSubject, searchQuery])
+  }, [selectedCategory, selectedSubject, searchQuery])
 
   useEffect(() => {
     const timeout = setTimeout(fetchNotes, 300)
@@ -122,24 +126,51 @@ export default function NotesLibrary() {
           </div>
         </div>
 
-        {/* Subject Pills */}
+        {/* Category Pills */}
         <div className="flex flex-wrap gap-2 mb-8">
           <button
-            onClick={() => setSelectedSubject(null)}
-            className={`badge px-4 py-1.5 text-sm transition-all ${!selectedSubject ? 'bg-primary-600 text-white shadow-md' : 'bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
+            onClick={() => {
+              setSelectedCategory(null)
+              setSelectedSubject(null)
+            }}
+            className={`badge px-4 py-1.5 text-sm transition-all ${!selectedCategory ? 'bg-primary-600 text-white shadow-md' : 'bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
           >
             <Filter size={13} className="mr-1" /> All Subjects
           </button>
-          {subjects.map(s => (
+          {categories.map(category => (
             <button
-              key={s.id}
-              onClick={() => setSelectedSubject(selectedSubject === s.id ? null : s.id)}
-              className={`badge px-4 py-1.5 text-sm transition-all ${selectedSubject === s.id ? 'bg-primary-600 text-white shadow-md' : `${s.color} hover:opacity-80`}`}
+              key={category}
+              onClick={() => {
+                setSelectedCategory(selectedCategory === category ? null : category)
+                setSelectedSubject(null)
+              }}
+              className={`badge px-4 py-1.5 text-sm transition-all ${selectedCategory === category ? 'bg-primary-600 text-white shadow-md' : 'bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:opacity-80'}`}
             >
-              {s.name}
+              {category}
             </button>
           ))}
         </div>
+
+        {/* Subject Pills (2nd Level) */}
+        {selectedCategory && (
+          <div className="flex flex-wrap gap-2 mb-8 -mt-4">
+            <button
+              onClick={() => setSelectedSubject(null)}
+              className={`badge px-4 py-1.5 text-sm transition-all ${!selectedSubject ? 'bg-primary-600 text-white shadow-md' : 'bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
+            >
+              All in {selectedCategory}
+            </button>
+            {subjects.filter(s => s.category === selectedCategory).map(s => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedSubject(selectedSubject === s.id ? null : s.id)}
+                className={`badge px-4 py-1.5 text-sm transition-all ${selectedSubject === s.id ? 'bg-primary-600 text-white shadow-md' : `${s.color} hover:opacity-80`}`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Notes Grid/List */}
         {loading ? (
@@ -149,7 +180,7 @@ export default function NotesLibrary() {
             <BookOpen size={48} className="text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No notes found</h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-              {searchQuery || selectedSubject ? 'Try adjusting your filters.' : 'Be the first to upload notes!'}
+              {searchQuery || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to upload notes!'}
             </p>
             <Link to="/upload" className="btn-primary">Upload Notes</Link>
           </div>
