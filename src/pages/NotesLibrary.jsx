@@ -15,28 +15,51 @@ export default function NotesLibrary() {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedSubject, setSelectedSubject] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
+  const [noteToDelete, setNoteToDelete] = useState(null)
 
   const fetchNotes = useCallback(async () => {
     setLoading(true)
-    let query = supabase
-      .from('notes')
-      .select('id, title, description, subject_id, tags, file_url, file_name, created_at, user_id, profiles(full_name)')
-      .order('created_at', { ascending: false })
+    
+    const buildQuery = (selectCols) => {
+      let q = supabase
+        .from('notes')
+        .select(selectCols)
+        .order('created_at', { ascending: false })
 
-    if (selectedSubject) {
-      query = query.eq('subject_id', selectedSubject)
-    } else if (selectedCategory) {
-      const categorySubjectIds = subjects.filter(s => s.category === selectedCategory).map(s => s.id)
-      query = query.in('subject_id', categorySubjectIds)
-    }
-    if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+      if (selectedSubject) {
+        q = q.eq('subject_id', selectedSubject)
+      } else if (selectedCategory) {
+        const categorySubjectIds = subjects.filter(s => s.category === selectedCategory).map(s => s.id)
+        q = q.in('subject_id', categorySubjectIds)
+      }
+
+      if (searchQuery) {
+        q = q.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+      }
+      return q
     }
 
-    const { data, error } = await query
-    if (error) console.error('Error fetching notes:', error)
-    setNotes(data || [])
-    setLoading(false)
+    try {
+      let { data, error } = await buildQuery('id, title, description, subject_id, tags, file_url, file_name, created_at, user_id, views, downloads, profiles(full_name)')
+      
+      // Fallback if columns "views" or "downloads" do not exist yet (Often PGRST204 or 42703)
+      if (error) {
+        console.warn('Primary query failed, falling back to legacy query without views/downloads:', error)
+        const fallback = await buildQuery('id, title, description, subject_id, tags, file_url, file_name, created_at, user_id, profiles(full_name)')
+        data = fallback.data
+        error = fallback.error
+      }
+
+      if (error) {
+        console.error('Error fetching notes:', error)
+      }
+      setNotes(data || [])
+    } catch (e) {
+      console.error('Unexpected error fetching notes:', e)
+      setNotes([])
+    } finally {
+      setLoading(false)
+    }
   }, [selectedCategory, selectedSubject, searchQuery])
 
   useEffect(() => {
@@ -53,10 +76,32 @@ export default function NotesLibrary() {
     link.download = note.file_name || `${note.title}.pdf`
     link.target = '_blank'
     link.click()
+
+    // Optimistically update UI
+    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, downloads: (n.downloads || 0) + 1 } : n))
+    
+    // Update DB
+    await supabase.from('notes').update({ downloads: (note.downloads || 0) + 1 }).eq('id', note.id)
   }
 
-  const handleDeleteNote = async (note) => {
-    if (!window.confirm('Are you sure you want to delete this note?')) return
+  const handleView = async (note) => {
+    if (!note.file_url) return
+    window.open(note.file_url, '_blank', 'noopener,noreferrer')
+
+    // Optimistically update UI
+    setNotes(prev => prev.map(n => n.id === note.id ? { ...n, views: (n.views || 0) + 1 } : n))
+    
+    // Update DB
+    await supabase.from('notes').update({ views: (note.views || 0) + 1 }).eq('id', note.id)
+  }
+
+  const handleDeleteNote = (note) => {
+    setNoteToDelete(note)
+  }
+
+  const confirmDelete = async () => {
+    if (!noteToDelete) return
+    const note = noteToDelete
 
     // First remove the file from storage if we have the file_name
     if (note.file_name) {
@@ -71,6 +116,7 @@ export default function NotesLibrary() {
     } else {
       console.error('Error deleting note record:', error)
     }
+    setNoteToDelete(null)
   }
 
   return (
@@ -220,14 +266,12 @@ export default function NotesLibrary() {
                         </button>
                       )}
                       {note.file_url && (
-                        <a
-                          href={note.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => handleView(note)}
                           className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-medium transition-colors"
                         >
                           <Eye size={14} /> View
-                        </a>
+                        </button>
                       )}
                       <button
                         onClick={() => handleDownload(note)}
@@ -236,6 +280,14 @@ export default function NotesLibrary() {
                         <Download size={14} /> Download
                       </button>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-400 dark:text-slate-500 font-medium">
+                    <span className="flex items-center gap-1">
+                      <Eye size={12} /> {note.views || 0} Views
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Download size={12} /> {note.downloads || 0} Downloads
+                    </span>
                   </div>
                   {note.tags && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -258,6 +310,14 @@ export default function NotesLibrary() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                       {note.description || 'No description'} · by {note.profiles?.full_name || 'Anonymous'}
                     </p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 dark:text-slate-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Eye size={12} /> {note.views || 0} Views
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Download size={12} /> {note.downloads || 0} Downloads
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {note.user_id === user?.id && (
@@ -270,15 +330,13 @@ export default function NotesLibrary() {
                       </button>
                     )}
                     {note.file_url && (
-                      <a
-                        href={note.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => handleView(note)}
                         className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                         title="View note"
                       >
                         <Eye size={16} />
-                      </a>
+                      </button>
                     )}
                     <button
                       onClick={() => handleDownload(note)}
@@ -293,6 +351,32 @@ export default function NotesLibrary() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {noteToDelete && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all opacity-100">
+          <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in border border-slate-100 dark:border-dark-600">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-2">Delete Note</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+              Are you sure you want to delete <span className="font-semibold text-slate-700 dark:text-slate-300">"{noteToDelete.title}"</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setNoteToDelete(null)}
+                className="btn-secondary px-5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg shadow-red-600/20 active:scale-[0.98]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
