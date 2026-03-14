@@ -80,8 +80,8 @@ export default function NotesLibrary() {
     // Optimistically update UI
     setNotes(prev => prev.map(n => n.id === note.id ? { ...n, downloads: (n.downloads || 0) + 1 } : n))
     
-    // Update DB
-    await supabase.from('notes').update({ downloads: (note.downloads || 0) + 1 }).eq('id', note.id)
+    // Update DB via RPC to ensure atomicity and bypass RLS restrictions for non-owners
+    await supabase.rpc('increment_download', { note_id: note.id })
   }
 
   const handleView = async (note) => {
@@ -91,8 +91,8 @@ export default function NotesLibrary() {
     // Optimistically update UI
     setNotes(prev => prev.map(n => n.id === note.id ? { ...n, views: (n.views || 0) + 1 } : n))
     
-    // Update DB
-    await supabase.from('notes').update({ views: (note.views || 0) + 1 }).eq('id', note.id)
+    // Update DB via RPC for atomic increment and RLS bypass
+    await supabase.rpc('increment_view', { note_id: note.id })
   }
 
   const handleDeleteNote = (note) => {
