@@ -3,7 +3,6 @@ import { User, FileText, MessageSquare, Mail, Calendar, Edit2, Camera, Check, X,
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
-import Footer from '../components/ui/Footer'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { subjects } from './Dashboard'
 
@@ -45,7 +44,7 @@ export default function ProfilePage() {
 
   const handleDeleteNote = async (noteId, fileName) => {
     if (!window.confirm('Are you sure you want to delete this note?')) return
-    
+
     // First remove the file from storage if we have the file_name
     if (fileName) {
       const { error: storageError } = await supabase.storage.from('notes').remove([fileName])
@@ -183,11 +182,10 @@ export default function ProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === tab.id
                     ? 'bg-white dark:bg-dark-700 text-primary-600 dark:text-primary-400 shadow-sm'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <Icon size={16} /> {tab.label}
               </button>
@@ -285,7 +283,6 @@ export default function ProfilePage() {
           </div>
         )}
       </main>
-      <div className="mt-8"><Footer /></div>
     </div>
   )
 }
