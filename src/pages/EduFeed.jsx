@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Heart, MessageSquare, Send, Rss, ChevronDown, ChevronUp, AlertCircle, Trash2 } from 'lucide-react'
+import { Heart, MessageSquare, Send, Rss, ChevronDown, ChevronUp, AlertCircle, Trash2, Flag } from 'lucide-react'
+import ReportModal from '../components/ui/ReportModal'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
-function PostCard({ post, currentUserId, onLike, onComment, onDeletePost }) {
+function PostCard({ post, currentUserId, onLike, onComment, onDeletePost, onReport }) {
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
@@ -112,6 +113,15 @@ function PostCard({ post, currentUserId, onLike, onComment, onDeletePost }) {
           {post.comment_count || 0}
           {showComments ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
+        {post.user_id !== currentUserId && (
+          <button
+            onClick={() => onReport(post.id)}
+            className="ml-auto flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-all duration-200"
+            title="Report post"
+          >
+            <Flag size={15} />
+          </button>
+        )}
       </div>
 
       {/* Comments Section */}
@@ -183,6 +193,7 @@ export default function EduFeed() {
   const [newPost, setNewPost] = useState('')
   const [posting, setPosting] = useState(false)
   const [error, setError] = useState('')
+  const [reportTarget, setReportTarget] = useState(null)
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -322,11 +333,21 @@ export default function EduFeed() {
                 onLike={handleLike}
                 onComment={handleComment}
                 onDeletePost={handleDeletePost}
+                onReport={(postId) => setReportTarget({ contentType: 'post', contentId: postId })}
               />
             ))}
           </div>
         )}
       </main>
+
+      {/* Report Modal */}
+      {reportTarget && (
+        <ReportModal
+          contentType={reportTarget.contentType}
+          contentId={reportTarget.contentId}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
     </div>
   )
 }

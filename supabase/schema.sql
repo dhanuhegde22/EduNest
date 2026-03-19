@@ -164,3 +164,27 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================================
+-- REPORTS TABLE (Content Moderation)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS reports (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  content_type TEXT NOT NULL CHECK (content_type IN ('note', 'post')),
+  content_id   UUID NOT NULL,
+  reported_by  UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  reason       TEXT NOT NULL,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  -- Prevent the same user from reporting the same content more than once
+  UNIQUE (reported_by, content_type, content_id)
+);
+
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
+
+-- Authenticated users can insert their own reports
+CREATE POLICY "Users can insert reports" ON reports
+  FOR INSERT WITH CHECK (auth.uid() = reported_by);
+
+-- Users can only view reports they submitted (admins use service key)
+CREATE POLICY "Users can view their own reports" ON reports
+  FOR SELECT USING (auth.uid() = reported_by);

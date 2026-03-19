@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, BookOpen, Download, FileText, Filter, Grid, List, X, Trash2, Eye } from 'lucide-react'
+import { Search, BookOpen, Download, FileText, Filter, Grid, List, X, Trash2, Eye, Flag } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import ReportModal from '../components/ui/ReportModal'
 import { subjects, categories } from './Dashboard'
 
 export default function NotesLibrary() {
@@ -16,6 +17,7 @@ export default function NotesLibrary() {
   const [selectedSubject, setSelectedSubject] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
   const [noteToDelete, setNoteToDelete] = useState(null)
+  const [reportTarget, setReportTarget] = useState(null)
 
   const fetchNotes = useCallback(async () => {
     setLoading(true)
@@ -266,13 +268,21 @@ export default function NotesLibrary() {
                       by {note.profiles?.full_name || 'Anonymous'}
                     </span>
                     <div className="flex items-center gap-2">
-                      {note.user_id === user?.id && (
+                      {note.user_id === user?.id ? (
                         <button
                           onClick={() => handleDeleteNote(note)}
                           className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Delete note"
                         >
                           <Trash2 size={14} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setReportTarget({ contentType: 'note', contentId: note.id })}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Report note"
+                        >
+                          <Flag size={14} />
                         </button>
                       )}
                       {note.file_url && (
@@ -330,13 +340,21 @@ export default function NotesLibrary() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {note.user_id === user?.id && (
+                    {note.user_id === user?.id ? (
                       <button
                         onClick={() => handleDeleteNote(note)}
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors"
                         title="Delete note"
                       >
                         <Trash2 size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setReportTarget({ contentType: 'note', contentId: note.id })}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Report note"
+                      >
+                        <Flag size={16} />
                       </button>
                     )}
                     {note.file_url && (
@@ -386,6 +404,15 @@ export default function NotesLibrary() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Report Modal */}
+      {reportTarget && (
+        <ReportModal
+          contentType={reportTarget.contentType}
+          contentId={reportTarget.contentId}
+          onClose={() => setReportTarget(null)}
+        />
       )}
     </div>
   )
