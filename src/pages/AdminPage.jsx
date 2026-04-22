@@ -9,20 +9,68 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deletingId, setDeletingId] = useState(null)
+  const [dismissingId, setDismissingId] = useState(null)
 
   const fetchReports = async () => {
     setLoading(true)
     setError('')
-    const { data, error: fetchError } = await supabase
+    const { data: reportsData, error: fetchError } = await supabase
       .from('reports')
       .select('id, content_type, content_id, reported_by, reason, created_at')
       .order('created_at', { ascending: false })
 
     if (fetchError) {
       setError(fetchError.message)
-    } else {
-      setReports(data || [])
+      setLoading(false)
+      return
     }
+
+    if (!reportsData || reportsData.length === 0) {
+      setReports([])
+      setLoading(false)
+      return
+    }
+
+    const postIds = reportsData.filter(r => r.content_type === 'post').map(r => r.content_id)
+    const noteIds = reportsData.filter(r => r.content_type === 'note').map(r => r.content_id)
+    const reporterIds = [...new Set(reportsData.map(r => r.reported_by).filter(Boolean))]
+
+    // Fire one .maybeSingle() per unique reporter UUID so there is no aggregation
+    // and no chance of a key mismatch from .in() returning items in a different order.
+    const [postsRes, notesRes, ...profileResults] = await Promise.all([
+      postIds.length > 0
+        ? supabase.from('posts').select('id, content').in('id', postIds)
+        : Promise.resolve({ data: [] }),
+      noteIds.length > 0
+        ? supabase.from('notes').select('id, title, file_name').in('id', noteIds)
+        : Promise.resolve({ data: [] }),
+      ...reporterIds.map(uid =>
+        supabase.from('profiles').select('id, email').eq('id', uid).maybeSingle()
+      ),
+    ])
+
+    // Build email map from per-UUID results; index aligns with reporterIds
+    const profileMap = {}
+    profileResults.forEach((res, i) => {
+      const uid = String(reporterIds[i])
+      profileMap[uid] = res?.data?.email || null
+    })
+
+    const postMap = Object.fromEntries((postsRes.data || []).map(p => [p.id, p]))
+    const noteMap = Object.fromEntries((notesRes.data || []).map(n => [n.id, n]))
+
+    const enriched = reportsData.map(r => {
+      const reporter_email = profileMap[String(r.reported_by)] || r.reported_by || 'Unknown'
+      if (r.content_type === 'post') {
+        const post = postMap[r.content_id]
+        return { ...r, reporter_email, preview: post ? `Post: "${post.content.slice(0, 100)}${post.content.length > 100 ? '\u2026' : ''}"` : 'Post: (deleted or not found)' }
+      } else {
+        const note = noteMap[r.content_id]
+        return { ...r, reporter_email, preview: note ? `Note: "${note.title || note.file_name || 'Untitled'}"` : 'Note: (deleted or not found)' }
+      }
+    })
+
+    setReports(enriched)
     setLoading(false)
   }
 
@@ -63,36 +111,71 @@ export default function AdminPage() {
     setDeletingId(null)
   }
 
+  const handleDismiss = async (report) => {
+    if (!window.confirm('Dismiss this report? The content will be kept.')) return
+    setDismissingId(report.id)
+
+    const { error: reportError } = await supabase
+      .from('reports')
+      .delete()
+      .eq('id', report.id)
+
+    if (reportError) {
+      alert(`Error dismissing report: ${reportError.message}`)
+      setDismissingId(null)
+      return
+    }
+
+    setReports(prev => prev.filter(r => r.id !== report.id))
+    setDismissingId(null)
+  }
+
   const reportedPosts = reports.filter(r => r.content_type === 'post')
   const reportedNotes = reports.filter(r => r.content_type === 'note')
 
   const ReportCard = ({ report }) => (
     <div className="glass-card p-4 flex items-start justify-between gap-4">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
-          Content ID: <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{report.content_id}</span>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+          {report.preview}
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
           <span className="font-medium">Reason:</span> {report.reason}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          <span className="font-medium">Reported By:</span> {report.reporter_email}
+        </p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
           {new Date(report.created_at).toLocaleDateString('en-IN', {
             day: 'numeric', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
           })}
         </p>
       </div>
-      <button
-        onClick={() => handleDelete(report)}
-        disabled={deletingId === report.id}
-        className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg shadow-red-600/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-        title={`Delete ${report.content_type} and remove report`}
-      >
-        {deletingId === report.id
-          ? <LoadingSpinner size="sm" />
-          : <><Trash2 size={14} /> Delete</>
-        }
-      </button>
+      <div className="shrink-0 flex items-center gap-2">
+        <button
+          onClick={() => handleDelete(report)}
+          disabled={deletingId === report.id || dismissingId === report.id}
+          className="flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg shadow-red-600/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          title={`Delete ${report.content_type} and remove report`}
+        >
+          {deletingId === report.id
+            ? <LoadingSpinner size="sm" />
+            : <><Trash2 size={14} /> Delete Content</>
+          }
+        </button>
+        <button
+          onClick={() => handleDismiss(report)}
+          disabled={deletingId === report.id || dismissingId === report.id}
+          className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-dark-700 dark:hover:bg-dark-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          title="Dismiss report without deleting content"
+        >
+          {dismissingId === report.id
+            ? <LoadingSpinner size="sm" />
+            : 'Dismiss Report'
+          }
+        </button>
+      </div>
     </div>
   )
 
