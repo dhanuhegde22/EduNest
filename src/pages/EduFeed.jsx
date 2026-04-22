@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Navbar from '../components/ui/Navbar'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 
-function PostCard({ post, currentUserId, onLike, onComment, onDeletePost, onReport }) {
+function PostCard({ post, currentUserId, isAdmin, onLike, onComment, onDeletePost, onReport }) {
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
@@ -79,9 +79,9 @@ function PostCard({ post, currentUserId, onLike, onComment, onDeletePost, onRepo
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{post.profiles?.full_name || 'Anonymous'}</p>
           <p className="text-xs text-slate-400">{timeAgo(post.created_at)}</p>
         </div>
-        {post.user_id === currentUserId && (
+        {(post.user_id === currentUserId || isAdmin) && (
           <button
-            onClick={() => onDeletePost(post.id)}
+            onClick={() => onDeletePost(post.id, post.user_id === currentUserId)}
             className="ml-auto p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             title="Delete post"
           >
@@ -188,6 +188,7 @@ function PostCard({ post, currentUserId, onLike, onComment, onDeletePost, onRepo
 
 export default function EduFeed() {
   const { user } = useAuth()
+  const isAdmin = user?.email === 'educationalnest26@gmail.com'
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [newPost, setNewPost] = useState('')
@@ -258,9 +259,12 @@ export default function EduFeed() {
     ))
   }
 
-  const handleDeletePost = async (postId) => {
+  const handleDeletePost = async (postId, isOwner) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return
-    const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id)
+    let query = supabase.from('posts').delete().eq('id', postId)
+    // owner deletion keeps the user_id filter (respects RLS); admin bypasses it
+    if (isOwner) query = query.eq('user_id', user.id)
+    const { error } = await query
     if (!error) {
       setPosts(prev => prev.filter(p => p.id !== postId))
     } else {
@@ -330,6 +334,7 @@ export default function EduFeed() {
                 key={post.id}
                 post={post}
                 currentUserId={user.id}
+                isAdmin={isAdmin}
                 onLike={handleLike}
                 onComment={handleComment}
                 onDeletePost={handleDeletePost}

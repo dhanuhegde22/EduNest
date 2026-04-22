@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, Sun, Moon, Menu, X, LogOut, User, Upload, Library, Rss, LayoutDashboard } from 'lucide-react'
+import { BookOpen, Sun, Moon, Menu, X, LogOut, User, Upload, Library, Rss, LayoutDashboard, Shield } from 'lucide-react'
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
@@ -16,11 +16,13 @@ export default function Navbar() {
     navigate('/')
   }
 
+  const ADMIN_EMAIL = 'educationalnest26@gmail.com'
   const navLinks = user ? [
     { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { to: '/notes', label: 'Notes', icon: <Library size={16} /> },
     { to: '/feed', label: 'EduFeed', icon: <Rss size={16} /> },
     { to: '/upload', label: 'Upload', icon: <Upload size={16} /> },
+    ...(user.email === ADMIN_EMAIL ? [{ to: '/admin', label: 'Admin Panel', icon: <Shield size={16} /> }] : []),
   ] : []
 
   return (

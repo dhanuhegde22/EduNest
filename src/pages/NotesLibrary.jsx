@@ -10,6 +10,7 @@ import { subjects, categories } from './Dashboard'
 
 export default function NotesLibrary() {
   const { user } = useAuth()
+  const isAdmin = user?.email === 'educationalnest26@gmail.com'
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -121,8 +122,10 @@ export default function NotesLibrary() {
       if (storageError) console.error('Error deleting file from storage:', storageError)
     }
 
-    // Then delete the database record
-    const { error } = await supabase.from('notes').delete().eq('id', note.id).eq('user_id', user.id)
+    // Delete database record; admin can delete any note, owners are constrained by user_id
+    let query = supabase.from('notes').delete().eq('id', note.id)
+    if (!isAdmin) query = query.eq('user_id', user.id)
+    const { error } = await query
     if (!error) {
       setNotes(prev => prev.filter(n => n.id !== note.id))
     } else {
@@ -268,7 +271,7 @@ export default function NotesLibrary() {
                       by {note.profiles?.full_name || 'Anonymous'}
                     </span>
                     <div className="flex items-center gap-2">
-                      {note.user_id === user?.id ? (
+                      {(note.user_id === user?.id || isAdmin) ? (
                         <button
                           onClick={() => handleDeleteNote(note)}
                           className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -340,7 +343,7 @@ export default function NotesLibrary() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {note.user_id === user?.id ? (
+                    {(note.user_id === user?.id || isAdmin) ? (
                       <button
                         onClick={() => handleDeleteNote(note)}
                         className="p-2 text-slate-400 hover:text-red-500 transition-colors"

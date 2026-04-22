@@ -12,6 +12,8 @@ import UploadNotes from './pages/UploadNotes'
 import EduFeed from './pages/EduFeed'
 import ProfilePage from './pages/ProfilePage'
 import ResetPassword from './pages/ResetPassword'
+import AdminPage from './pages/AdminPage'
+import AdminRoute from './components/ui/AdminRoute'
 
 export default function App() {
   return (
@@ -31,6 +33,7 @@ export default function App() {
             <Route path="/upload" element={<ProtectedRoute><UploadNotes /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><EduFeed /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
